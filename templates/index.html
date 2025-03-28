@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Café-X</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+  <ul>
+    <li><a href="{{ url_for('home') }}">Home</a></li>
+    <li><a href="{{ url_for('menu') }}">Menu</a></li>
+    <li><a href="{{ url_for('cart') }}">Cart</a></li>
+    <li><a href="{{ url_for('token_page') }}">Token</a></li>
+    <li><a href="{{ url_for('payment') }}">Payment</a></li>
+
+    <li><a href="#">Contact</a></li>
+
+    
+</ul>
+<div class="profile-container">
+  {% if session["user_id"] %}
+      <a href="{{ url_for('profile') }}">
+          <img id="profile-icon" class="profile-icon" src="{{ url_for('static', filename='images/profile-icon.png') }}" alt="Profile">
+      </a>
+  {% else %}
+      <a href="{{ url_for('signin') }}">
+          <button class="signin-btn">Sign In</button>
+      </a>
+  {% endif %}
+</div>
+
+
+
+
+    <header class="showcase">
+        <div class="showcase-top">
+            <div class="logo-text">Cafè-X</div>
+        </div>
+        <div class="showcase-content">
+            <h1>Every Moment has its Flavour</h1>
+            <p>Enjoy! Anytime. Anywhere. Fuel your day with our wholesome and delicious offerings.</p>
+            <a href="{{ url_for('menu') }}" class="btn-xl">
+                Order Your Meal
+                <i class="fas fa-chevron-right btn-icon"></i>
+            </a>
+        </div>
+    </header>
+
+    <script src="{{ url_for('static', filename='profile.js') }}"></script>
+    
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart | CAFÈ-X</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='cart.css') }}">
+</head>
+<body>
+    <div class="cart-container">
+        <h1>Your Shopping Cart</h1>
+        
+        <div id="error-message" class="error-message"></div>
+        
+        <div id="cart-items">
+            {% if cart_items %}
+                {% for item in cart_items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                    <div class="item-details">
+                        <h3>{{ item.item_name }}</h3>
+                        <p class="price">₹{{ "%.2f"|format(item.price) }}</p>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus">-</button>
+                        <span class="quantity">{{ item.quantity }}</span>
+                        <button class="quantity-btn plus">+</button>
+                    </div>
+                    <div class="item-total">
+                        <p>₹{{ "%.2f"|format(item.total_price) }}</p>
+                    </div>
+                    <button class="remove-item">×</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-cart">Your cart is empty</p>
+            {% endif %}
+        </div>
+        
+        <div id="cart-summary">
+            <div class="summary-item">
+                <span>Total Items:</span>
+                <span id="total-items">{{ cart_items|length if cart_items else 0 }}</span>
+            </div>
+            <div class="summary-item">
+                <span>Total Price:</span>
+                <span>₹{{ "%.2f"|format(total_price) }}</span>
+            </div>
+            <div class="token-balance">
+                <span>Your Token Balance:</span>
+                <span id="token-balance">Loading...</span>
+            </div>
+            <button id="checkout-btn" {% if not cart_items %}disabled{% endif %}>
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='cart.js') }}"></script>
+</body>
+</html>

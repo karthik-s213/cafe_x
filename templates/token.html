@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>My Tokens</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='token.css') }}">
+</head>
+<body>
+    <div class="token-container">
+        <h1>Your Token Balance</h1>
+        <p>Available Tokens: <span id="token-balance">{{ tokens }}</span></p>  <!-- ✅ Displays user tokens -->
+
+        <button id="purchase-btn">Use Tokens to Buy Items</button>
+
+        <p id="message"></p>
+
+        <a href="{{ url_for('home') }}"><button>Back to Home</button></a>
+    </div>
+
+    <script src="{{ url_for('static', filename='token.js') }}"></script>
+</body>
+</html>
+ 
+<body>
+    <div class="profile-container">
+        <h1>Welcome, {{ user.name }}</h1>
+        <p>Email: {{ user.email }}</p>
+        <p>Available Tokens: <span id="token-balance">{{ user.tokens }}</span></p>
+
+        <h2>Order History</h2>
+        <ul>
+            {% for order in orders %}
+                <li>Spent <b>{{ order[0] }}</b> tokens on {{ order[1] }}</li>
+            {% endfor %}
+        </ul>
+
+        <a href="{{ url_for('home') }}"><button>Back to Home</button></a>
+    </div>
+</body>
+</html>

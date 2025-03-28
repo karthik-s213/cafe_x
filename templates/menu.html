@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Menu | CAFÈ-X</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='menu.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  </head>
+  <body>
+    
+    <div class="menu" id="Menu">
+      <h1>Our <span>Menu</span></h1>
+      
+      <div id="error-message" class="error-message"></div>
+
+      <div class="menu_box">
+        {% for item in menu_items %}
+        <div class="menu_card" data-id="{{ item.id }}">
+          <div class="menu_image">
+            <img src="{{ item.image_url }}" alt="{{ item.name }}">
+          </div>
+          <div class="small_card">
+            <i class="fa-solid fa-heart"></i>
+          </div>
+          <div class="menu_info">
+            <h2>{{ item.name }}</h2>
+            <p>{{ item.description }}</p>
+            <h3>₹{{ "%.2f"|format(item.price) }}</h3>
+            <div class="menu_icon">
+              {% for i in range(item.rating) %}
+                <i class="fa-solid fa-star"></i>
+              {% endfor %}
+              {% if item.rating % 1 != 0 %}
+                <i class="fa-solid fa-star-half-stroke"></i>
+              {% endif %}
+            </div>
+            <button class="menu_btn" onclick="addToCart('{{ item.name }}', {{ item.price }})">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Cart Button with count -->
+      <center>
+        <button id="cart-btn" onclick="viewCart()">Cart (0)</button>
+      </center>
+
+      <!-- <center>
+        <a href="./payment.html"><button>Go to Payment</button></a>
+      </center> -->
+    </div>
+
+    <div id="cart-notification" class="cart-notification">
+      <span>Item added to cart!</span>
+    </div>
+
+    <script src="{{ url_for('static', filename='menu.js') }}"></script>
+    
+  
+  </body>
+</html>

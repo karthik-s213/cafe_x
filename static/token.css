@@ -1,0 +1,74 @@
+/* ✅ General Page Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* ✅ Token Container */
+.token-container {
+    width: 350px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #333;
+}
+
+/* ✅ Token Balance Display */
+p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #444;
+}
+
+/* ✅ Input Field */
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* ✅ Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background-color: #ff4b2b;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: 0.3s ease-in-out;
+}
+
+button:hover {
+    background-color: #ff7043;
+}
+
+/* ✅ Message Display */
+#message {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: red;
+}
+
+/* ✅ Back to Home Button */
+a button {
+    background-color: #3498db;
+}
+
+a button:hover {
+    background-color: #2980b9;
+}
