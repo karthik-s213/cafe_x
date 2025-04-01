@@ -3,30 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Payment</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='payment.css') }}">
+    <title>Payment - Cafe X</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="payment-container">
-        <h1>Crypto Payment</h1>
+    <div class="container">
+        <header>
+            <h1>Add Tokens</h1>
+        </header>
 
-        <label for="crypto">Select Cryptocurrency:</label>
-        <select id="crypto">
-            <option value="bitcoin">Bitcoin (BTC)</option>
-            <option value="ethereum">Ethereum (ETH)</option>
-            <option value="litecoin">Litecoin (LTC)</option>
-        </select>
-
-        <label for="amount-inr">Enter Amount (INR):</label>
-        <input type="number" id="amount-inr" placeholder="100" required>
-
-        <button id="pay-now">Proceed to Pay</button>
-
-        <div id="payment-info"></div>
-
-        <a id="home-link" href="{{ url_for('confirm_payment') }}">Go to Home</a>
+        <div class="payment-form">
+            <h2>Select Amount to Add Tokens</h2>
+            <div class="token-options">
+                <div class="token-option">
+                    <h3>₹1000</h3>
+                    <p>Get 100 Tokens</p>
+                    <button onclick="processPayment(1000)" class="btn">Add 100 Tokens</button>
+                </div>
+                <div class="token-option">
+                    <h3>₹2000</h3>
+                    <p>Get 200 Tokens</p>
+                    <button onclick="processPayment(2000)" class="btn">Add 200 Tokens</button>
+                </div>
+                <div class="token-option">
+                    <h3>₹5000</h3>
+                    <p>Get 500 Tokens</p>
+                    <button onclick="processPayment(5000)" class="btn">Add 500 Tokens</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="{{ url_for('static', filename='payment.js') }}"></script>
+    <script>
+    function processPayment(amount) {
+        fetch("{{ url_for('process_payment') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount_inr: amount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully added ${data.tokens_added} tokens! Your new balance is ${data.new_balance} tokens.`);
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.error || 'An error occurred while processing your payment.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your payment.');
+        });
+    }
+    </script>
+
+    <style>
+    .payment-form {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .token-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .token-option {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+
+    .token-option:hover {
+        transform: translateY(-5px);
+    }
+
+    .token-option h3 {
+        margin: 0 0 10px 0;
+        color: #333;
+    }
+
+    .token-option p {
+        margin: 0 0 15px 0;
+        color: #666;
+    }
+
+    .token-option button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+    }
+
+    .token-option button:hover {
+        background-color: #45a049;
+    }
+    </style>
 </body>
 </html>

@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function purchaseTokens() {
     let amountInr = document.getElementById("amount-inr").value;
 
-    fetch('/purchase_tokens', {
+    fetch('/process_patments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: amountInr })
@@ -27,15 +27,6 @@ function purchaseTokens() {
     });
 }
 
-    fetch('/get_cart_total')  // ✅ Fetch updated cart total
-    .then(response => response.json())
-    .then(cartData => {
-        if (cartData.success) {
-            document.getElementById("total-price").innerText = cartData.total_price.toFixed(2);
-        }
-    })
-    .catch(error => console.error("Error fetching cart total:", error));
-}
 
 // ✅ Ensure real-time update when "Use Tokens to Buy Items" is clicked
 document.getElementById("purchase-btn").addEventListener("click", function () {

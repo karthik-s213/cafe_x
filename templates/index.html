@@ -3,43 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Café-X</title>
+    <title>Cafè-X</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
-  <ul>
-    <li><a href="{{ url_for('home') }}">Home</a></li>
-    <li><a href="{{ url_for('menu') }}">Menu</a></li>
-    <li><a href="{{ url_for('cart') }}">Cart</a></li>
-    <li><a href="{{ url_for('token_page') }}">Token</a></li>
-    <li><a href="{{ url_for('payment') }}">Payment</a></li>
-
-    <li><a href="#">Contact</a></li>
-
-    
-</ul>
-<div class="profile-container">
-  {% if session["user_id"] %}
-      <a href="{{ url_for('profile') }}">
-          <img id="profile-icon" class="profile-icon" src="{{ url_for('static', filename='images/profile-icon.png') }}" alt="Profile">
-      </a>
-  {% else %}
-      <a href="{{ url_for('signin') }}">
-          <button class="signin-btn">Sign In</button>
-      </a>
-  {% endif %}
-</div>
-
-
-
-
     <header class="showcase">
         <div class="showcase-top">
             <div class="logo-text">Cafè-X</div>
+            {% if username %}
+                <div class="profile-container">
+                    <img src="{{ url_for('static', filename='profile-icon.svg') }}" alt="Profile" class="profile-icon" onclick="toggleProfile()">
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-header">
+                            <h3>{{ username }}</h3>
+                            <p>Available Tokens: ₹{{ "%.2f"|format(tokens) }}</p>
+                        </div>
+                        <div class="profile-actions">
+                            <a href="{{ url_for('profile') }}" class="profile-link" onclick="viewProfile(); return false;">View Profile</a>
+                            <a href="{{ url_for('signout') }}" class="profile-link">Sign Out</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="auth-buttons">
+                    <a href="{{ url_for('signin') }}" class="btn">Sign In</a>
+                    <a href="{{ url_for('signup') }}" class="btn">Sign Up</a>
+                </div>
+            {% endif %}
         </div>
+        <nav class="showcase-nav">
+            <ul>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('menu') }}">Menu</a></li>
+                <li><a href="{{ url_for('cart') }}">Cart</a></li>
+                <li><a href="{{ url_for('payment') }}">Add Tokens</a></li>
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
+            </ul>
+        </nav>
         <div class="showcase-content">
             <h1>Every Moment has its Flavour</h1>
-            <p>Enjoy! Anytime. Anywhere. Fuel your day with our wholesome and delicious offerings.</p>
+            <p>Enjoy! Anytime. Anywhere. Fuel your day with our wholesome and delicious offerings. 
+                Our menu features fresh, organic ingredients and nutritious options, including plant-based bowls, 
+                smoothies, and cold-pressed juices. Relax in our serene environment and nourish your body and mind.</p>
             <a href="{{ url_for('menu') }}" class="btn-xl">
                 Order Your Meal
                 <i class="fas fa-chevron-right btn-icon"></i>
@@ -47,7 +53,43 @@
         </div>
     </header>
 
-    <script src="{{ url_for('static', filename='profile.js') }}"></script>
-    
+    <script>
+        function toggleProfile() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function viewProfile() {
+            window.location.href = "{{ url_for('profile') }}";
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-icon')) {
+                const dropdowns = document.getElementsByClassName('profile-dropdown');
+                for (let dropdown of dropdowns) {
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Prevent dropdown from closing when clicking inside it
+        document.getElementById('profileDropdown').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
+        // Add click handler for profile link
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileLink = document.querySelector('a[href="{{ url_for("profile") }}"]');
+            if (profileLink) {
+                profileLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    viewProfile();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -14,18 +14,19 @@ section{
     height: 100vh;
 }
 .menu{
-    width: 100%;
     padding: 40px 0;
+    background-color: #f8f9fa;
 }
 
 .menu h1{
-    font-size: 2.5rem;
     text-align: center;
-    margin-bottom: 30px;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    color: #333;
 }
 
 .menu h1 span{
-    color: #fac031;
+    color: #ff6b6b;
 }
 
 .error-message {
@@ -33,25 +34,25 @@ section{
     color: #c62828;
     padding: 15px;
     margin: 20px auto;
-    max-width: 800px;
+    max-width: 600px;
     border-radius: 4px;
     text-align: center;
 }
 
 .menu_box {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
-    padding: 20px;
+    padding: 0 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .menu_card {
-    background: #ffffff;
+    background: white;
     border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
     transition: transform 0.3s ease;
 }
 
@@ -76,8 +77,24 @@ section{
     transform: scale(1.1);
 }
 
+.small_card {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.small_card i {
+    color: #ff6b6b;
+    font-size: 1.2rem;
+}
+
 .menu_info {
-    padding: 20px;
+    text-align: center;
 }
 
 .menu_info h2 {
@@ -86,39 +103,29 @@ section{
     color: #333;
 }
 
-.menu_info p {
-    color: #666;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
 .menu_info h3 {
-    color: #fac031;
-    font-size: 1.8rem;
+    color: #ff6b6b;
+    font-size: 1.3rem;
     margin-bottom: 15px;
 }
 
 .menu_icon {
-    color: #fac031;
+    color: #ffd700;
     margin-bottom: 15px;
 }
 
 .menu_btn {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    background: #fac031;
+    display: inline-block;
+    padding: 8px 20px;
+    background-color: #ff6b6b;
     color: white;
-    border: none;
+    text-decoration: none;
     border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 .menu_btn:hover {
-    background: #e5ac2c;
+    background-color: #ff5252;
 }
 
 .cart-button-container {
@@ -129,42 +136,41 @@ section{
 }
 
 #cart-btn {
-    background: #fac031;
+    margin-top: 30px;
+    padding: 10px 30px;
+    background-color: #ff6b6b;
     color: white;
     border: none;
-    border-radius: 50px;
-    padding: 15px 25px;
+    border-radius: 5px;
     font-size: 1.1rem;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, background 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 #cart-btn:hover {
-    background: #e5ac2c;
-    transform: translateY(-2px);
+    background-color: #ff5252;
 }
 
 .cart-notification {
     position: fixed;
-    bottom: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #4caf50;
-    color: white;
-    padding: 15px 30px;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
     border-radius: 5px;
-    font-size: 1rem;
-    transition: bottom 0.3s ease;
+    color: white;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: all 0.3s ease;
     z-index: 1000;
 }
 
-.cart-notification.show {
-    bottom: 30px;
+.cart-notification.success {
+    background-color: #4caf50;
 }
 
 .cart-notification.error {
-    background: #f44336;
+    background-color: #f44336;
 }
 
 .no-items {
@@ -177,12 +183,18 @@ section{
 
 @media (max-width: 768px) {
     .menu_box {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        padding: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 0 15px;
     }
 
     .menu h1 {
         font-size: 2rem;
+    }
+
+    .menu_btn {
+        padding: 6px 15px;
+        font-size: 0.9rem;
     }
 
     .cart-button-container {

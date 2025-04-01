@@ -3,6 +3,8 @@
   --primary-color: #FF4B2B; /* Primary button color */
   --secondary-color: #FF416C; /* Accent color */
   --background-color: #f6f5f7;
+  --text-color: #333;
+  --border-color: #ddd;
   --button-hover-color: #FF7043; /* Hover effect color */
 }
 
@@ -20,91 +22,202 @@ body {
   font-family: 'Roboto', sans-serif; /* Default font for body */
   -webkit-font-smoothing: antialiased;
   background: var(--background-color);
-  color: #000000;
+  color: var(--text-color);
+  line-height: 1.6;
 }
 
-/* Styling for Links and Navigation */
-ul {
-  margin: 10px auto 0;
-  padding: 0;
-  list-style: none;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header Styling */
+header {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+header h1 {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+/* Navigation Styling */
+nav {
+  margin-bottom: 20px;
+}
+
+nav ul {
   display: flex;
   justify-content: center;
+  list-style: none;
+  gap: 20px;
 }
+
+nav a {
+  color: var(--text-color);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+nav a:hover {
+  background-color: var(--background-color);
+}
+
+/* Main Content Styling */
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+section {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+section h2 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+/* User Info Section */
+.user-info {
+  text-align: center;
+}
+
+.user-info p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+/* Recent Orders Section */
+.recent-orders ul {
+  list-style: none;
+}
+
+.recent-orders li {
+  border-bottom: 1px solid var(--border-color);
+  padding: 15px 0;
+}
+
+.recent-orders li:last-child {
+  border-bottom: none;
+}
+
+.recent-orders p {
+  margin: 5px 0;
+}
+
+/* Welcome Section */
+.welcome-section {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.welcome-section p {
+  margin: 20px 0;
+  font-size: 18px;
+}
+
+/* Auth Buttons */
+.auth-buttons {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.btn:hover {
+  background-color: var(--secondary-color);
+}
+
 /* ✅ Profile Styling */
 .profile-container {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  cursor: pointer;
+  position: relative;
+  display: inline-block;
 }
 
 .profile-icon {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   cursor: pointer;
+  border-radius: 50%;
 }
 
 .profile-dropdown {
   display: none;
   position: absolute;
-  top: 50px;
   right: 0;
-  background: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  border-radius: 5px;
-  min-width: 150px;
-  text-align: center;
+  background-color: white;
+  min-width: 200px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 1000;
 }
 
-.hidden {
-  display: none;
+.profile-dropdown.show {
+  display: block;
 }
 
-
-#signin-form {
-  position: absolute;
-  top: 60px;
-  right: 20px;
-  background: white;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.profile-header {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
 }
 
-
-li {
-  position: relative;
-  padding: 15px 20px;
+.profile-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
 }
 
-a {
-  color: #000;
-  text-transform: uppercase;
+.profile-header p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.profile-actions {
+  padding: 10px 0;
+}
+
+.profile-link {
+  display: block;
+  padding: 10px 15px;
+  color: #333;
   text-decoration: none;
-  letter-spacing: 0.15em;
-  padding: 15px 20px;
-  position: relative;
+  transition: background-color 0.2s;
 }
 
-a:after {
-  background: none;
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--secondary-color);
-  transition: width 0.3s ease 0s, left 0.3s ease 0s;
-}
-
-a:hover:after {
-  width: 100%;
-  left: 0;
+.profile-link:hover {
+  background-color: #f5f5f5;
 }
 
 /* Showcase Styling */
@@ -115,6 +228,7 @@ a:hover:after {
   background: url("https://media.istockphoto.com/id/1854521028/photo/modern-bakery-cafe.webp?a=1&b=1&s=612x612&w=0&k=20&c=4HfHjXk7Fme2Llk0JD-VMZlST0wGs2qH4U3pA7elFWs=")
     no-repeat center center/cover; /* Warm, cozy cafe-style background */
   background-size: cover;
+  z-index: 1;
 }
 
 /* Showcase Overlay */
@@ -126,23 +240,57 @@ a:hover:after {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.4); /* Darker overlay for contrast */
+  z-index: 2;
 }
 
 /* Showcase Top */
 .showcase-top {
   position: relative;
   height: 90px;
-  z-index: 2;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
 }
 
 .showcase-top .logo-text {
   color: var(--primary-color);
-  font-family: 'Dancing Script', cursive; /* Use Dancing Script for logo */
+  font-family: 'Dancing Script', cursive;
   font-size: 38px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+}
+
+/* Showcase Navigation */
+.showcase-nav {
+  position: relative;
+  z-index: 3;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px 0;
+}
+
+.showcase-nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.showcase-nav li {
+  margin: 0 20px;
+}
+
+.showcase-nav a {
+  color: white;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  transition: color 0.3s ease;
+}
+
+.showcase-nav a:hover {
+  color: var(--primary-color);
 }
 
 .showcase-content {
@@ -154,7 +302,7 @@ a:hover:after {
   align-items: center;
   text-align: center;
   margin-top: 9rem;
-  z-index: 2;
+  z-index: 3;
 }
 
 .showcase-content h1 {
@@ -167,13 +315,16 @@ a:hover:after {
 }
 
 .showcase-content p {
-  font-family: 'Roboto', sans-serif; /* Use Roboto for body text */
+  font-family: 'Roboto', sans-serif;
   font-weight: 400;
   color: #fff;
-  font-size: 1.8rem;
-  text-transform: uppercase;
-  line-height: 1.25rem;
-  margin: 2rem 0 2rem 0;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin: 0 0 3rem 0;
+  max-width: 800px;
+  word-wrap: break-word;
+  padding: 0 2rem;
+  text-align: center;
 }
 
 .showcase-content .btn-xl {
@@ -211,210 +362,8 @@ a:hover:after {
   }
 
   .showcase-content p {
-    font-size: 1.6rem;
-  }
-
-  .btn-xl {
-    font-size: 1.8rem; /* Reduced font size on smaller screens */
-    padding: 1.5rem 2.4rem; /* Reduced padding for better fit */
-  }
-}
-
-@media (max-width: 500px) {
-  .showcase-top .logo-text {
-    font-size: 1.5rem;
-  }
-
-  .showcase-content h1 {
-    font-size: 2rem;
-  }
-
-  .showcase-content p {
-    font-size: 1.2rem;
-  }
-
-  .btn-xl {
-    font-size: 1.5rem; /* Further reduced font size on very small screens */
-    padding: 1.2rem 2rem; /* Adjusted padding for compact layout */
-  }
-}
-/* Base Styling */
-:root {
-  --primary-color: #FF4B2B; /* Primary button color */
-  --secondary-color: #FF416C; /* Accent color */
-  --background-color: #f6f5f7;
-  --button-hover-color: #FF7043; /* Hover effect color */
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Dancing+Script:wght@400;700&display=swap');
-
-/* Body Styling */
-body {
-  font-family: 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  background: var(--background-color);
-  color: #000000;
-  padding: 0;
-}
-
-/* Styling for Links and Navigation */
-ul {
-  margin: 10px auto 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  justify-content: center;
-}
-
-li {
-  position: relative;
-  padding: 15px 20px;
-}
-
-a {
-  color: #000;
-  text-transform: uppercase;
-  text-decoration: none;
-  letter-spacing: 0.15em;
-  padding: 15px 20px;
-  position: relative;
-}
-
-a:after {
-  background: none;
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--secondary-color);
-  transition: width 0.3s ease 0s, left 0.3s ease 0s;
-}
-
-a:hover:after {
-  width: 100%;
-  left: 0;
-}
-
-/* Showcase Styling */
-.showcase {
-  width: 100%;
-  height: 100vh;
-  position: relative;
-  background: url("https://media.istockphoto.com/id/1854521028/photo/modern-bakery-cafe.webp?a=1&b=1&s=612x612&w=0&k=20&c=4HfHjXk7Fme2Llk0JD-VMZlST0wGs2qH4U3pA7elFWs=")
-    no-repeat center center/cover; /* Warm, cozy cafe-style background */
-  background-size: cover;
-}
-
-/* Showcase Overlay */
-.showcase::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4); /* Darker overlay for contrast */
-}
-
-/* Showcase Top */
-.showcase-top {
-  position: relative;
-  height: 90px;
-  z-index: 2;
-}
-
-.showcase-top .logo-text {
-  color: var(--primary-color);
-  font-family: 'Dancing Script', cursive;
-  font-size: 38px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Showcase Content */
-.showcase-content {
-  position: relative;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin-top: 9rem;
-  z-index: 2;
-  padding: 0 2rem; /* Add padding to avoid text touching edges */
-}
-
-.showcase-content h1 {
-  font-family: 'Dancing Script', cursive;
-  font-weight: 700;
-  font-size: 5.2rem;
-  line-height: 1.1rem;
-  margin: 0 0 2rem;
-  color: #fff;
-}
-
-.showcase-content p {
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400;
-  color: #fff;
-  font-size: 1.6rem;
-  line-height: 1.6rem;
-  text-transform: uppercase;
-  margin: 0 0 3rem 0;
-  max-width: 800px; /* Limit width of text for better readability */
-  word-wrap: break-word; /* Ensure text wraps nicely */
-  padding: 0 2rem; /* Add padding around the paragraph */
-  text-align: center; /* Align text in the center */
-}
-
-.showcase-content .btn-xl {
-  margin-top: 3rem;
-  padding: 1.8rem 3rem;
-  font-size: 2.4rem;
-  border-radius: 50px;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease-in-out;
-}
-
-.showcase-content .btn-xl:hover {
-  background: var(--button-hover-color);
-  transform: scale(1.05);
-}
-
-/* Button Hover Effect */
-.btn-xl:hover {
-  opacity: 0.9;
-}
-
-/* Media Queries for Responsiveness */
-@media (max-width: 960px) {
-  .showcase-top .logo-text {
-    font-size: 2.5rem;
-  }
-
-  .showcase-content h1 {
-    font-size: 3.7rem;
-  }
-
-  .showcase-content p {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
+    padding: 0 1.5rem;
   }
 
   .btn-xl {
@@ -433,12 +382,52 @@ a:hover:after {
   }
 
   .showcase-content p {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    padding: 0 1rem;
   }
 
   .btn-xl {
     font-size: 1.5rem;
     padding: 1.2rem 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .profile-container {
+    top: 10px;
+    right: 10px;
+  }
+
+  .profile-dropdown {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .auth-buttons {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+  }
+
+  .showcase-nav ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .showcase-nav li {
+    margin: 10px 0;
+  }
+
+  .showcase-nav a {
+    font-size: 1rem;
   }
 }
 
