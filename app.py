@@ -31,7 +31,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Database configuration
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
+    "host": os.getenv("DB_HOST", "svc-mysql.onrender.com"),
     "user": os.getenv("DB_USER", "root"),
     "password": os.getenv("DB_PASSWORD", "karthik@213"),
     "database": os.getenv("DB_NAME", "cafe_x"),
