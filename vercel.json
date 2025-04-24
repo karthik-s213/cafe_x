@@ -17,8 +17,7 @@
         "src": "/(.*)",           
         "dest": "app.py"         
       }
-    ],
+    ]
   
-    "python": { "runtime": "python3.11" }
   }
   
