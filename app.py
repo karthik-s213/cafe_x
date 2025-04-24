@@ -31,7 +31,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Database configuration
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "mysqldb-12345.internal"),
+    "host": os.getenv("DB_HOST", "cafe-x-db-q1v6.onrender.com"),
     "user": os.getenv("DB_USER", "root"),
     "password": os.getenv("DB_PASSWORD", "karthik@213"),
     "database": os.getenv("DB_NAME", "cafe_x"),
@@ -43,23 +43,61 @@ DB_CONFIG = {
 }
 
 # Initialize connection pool
-db_pool = mysql.connector.pooling.MySQLConnectionPool(**DB_CONFIG)
+# db_pool = mysql.connector.pooling.MySQLConnectionPool(**DB_CONFIG)
+
+# def get_db_connection():
+#     max_retries = 3
+#     retry_count = 0
+    
+#     while retry_count < max_retries:
+#         try:
+#             connection = db_pool.get_connection()
+#             cursor = connection.cursor(cursor_class=MySQLCursorDict)
+#             return connection, cursor
+#         except mysql.connector.Error as err:
+#             retry_count += 1
+#             print(f"Database connection attempt {retry_count} failed: {err}")
+#             if retry_count == max_retries:
+#                 raise
+#             time.sleep(1)  # Wait before retrying
+
+
+# ─── place these near the top, right after DB_CONFIG ──────────────────────────
+_pool = None           # global holder
+_POOL_RETRIES = 5
+_POOL_DELAY   = 3      # seconds
+
+
+def init_db_pool() -> None:
+    """Create the MySQL connection‑pool once, with retries."""
+    global _pool
+    if _pool:                         # already done
+        return
+
+    import mysql.connector
+    from mysql.connector import pooling
+
+    last_error = None
+    for i in range(_POOL_RETRIES):
+        try:
+            _pool = pooling.MySQLConnectionPool(**DB_CONFIG)
+            print("✅ MySQL pool initialised")
+            return
+        except mysql.connector.Error as err:
+            last_error = err
+            print(f"⏳ MySQL not ready ({err}); retry {i+1}/{_POOL_RETRIES}")
+            time.sleep(_POOL_DELAY)
+    raise RuntimeError(f"Could not connect to MySQL: {last_error}")
+
 
 def get_db_connection():
-    max_retries = 3
-    retry_count = 0
-    
-    while retry_count < max_retries:
-        try:
-            connection = db_pool.get_connection()
-            cursor = connection.cursor(cursor_class=MySQLCursorDict)
-            return connection, cursor
-        except mysql.connector.Error as err:
-            retry_count += 1
-            print(f"Database connection attempt {retry_count} failed: {err}")
-            if retry_count == max_retries:
-                raise
-            time.sleep(1)  # Wait before retrying
+    """Return (connection, cursor) – call init_db_pool() if needed."""
+    if _pool is None:
+        init_db_pool()                         # ❶ create on first real use
+    conn = _pool.get_connection()
+    cursor = conn.cursor(cursor_class=MySQLCursorDict)
+    return conn, cursor
+
 
 def login_required(f):
     @wraps(f)
