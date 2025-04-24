@@ -19,7 +19,7 @@
                             <p>Available Tokens: ₹{{ "%.2f"|format(tokens) }}</p>
                         </div>
                         <div class="profile-actions">
-                            <a href="{{ url_for('profile') }}" class="profile-link" onclick="viewProfile(); return false;">View Profile</a>
+                            <a href="{{ url_for('profile') }}" onclick="viewprofile()">View Profile</a>
                             <a href="{{ url_for('signout') }}" class="profile-link">Sign Out</a>
                         </div>
                     </div>
@@ -36,7 +36,7 @@
                 <li><a href="{{ url_for('home') }}">Home</a></li>
                 <li><a href="{{ url_for('menu') }}">Menu</a></li>
                 <li><a href="{{ url_for('cart') }}">Cart</a></li>
-                <li><a href="{{ url_for('payment') }}">Add Tokens</a></li>
+                <li><a href="{{ url_for('payment') }}">Payment</a></li>
                 <li><a href="{{ url_for('profile') }}">Profile</a></li>
                 <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
             </ul>
@@ -51,17 +51,108 @@
                 <i class="fas fa-chevron-right btn-icon"></i>
             </a>
         </div>
+        
+        <button class="chatbot-btn" onclick="toggleChatbot()">💬</button>
+        <div class="chatbot-container" id="chatbotContainer">
+            <div class="chatbot-header">
+                <h3>TMT Assistant</h3>
+                <button class="close-btn" onclick="toggleChatbot()">✖</button>
+            </div>
+            <div class="chatbot-body" id="chatbotBody">
+                <div class="bot-message">Hello! I'm TMT Assistant. How can I help you today?</div>
+            </div>
+            <div class="chatbot-footer">
+                <input type="text" id="chatbotInput" placeholder="Type your message..." />
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+       
+          
     </header>
+    
+      
+     
+     
+      
 
     <script>
+        const TOGETHER_API_KEY = "35c99a673053038a3479ea28d377a0ce28cedf7c6acc6c78252b49d9fa9eba4a"; // Replace with your actual Together API key
+
+// Toggle Sidebar and Content
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('closed');
+    document.getElementById('content').classList.toggle('shifted');
+}
+
+// Toggle Chatbot visibility
+function toggleChatbot() {
+    document.getElementById('chatbotContainer').classList.toggle('open');
+}
+
+// Send Message Function using Together API via fetch
+async function sendMessage() {
+    const inputField = document.getElementById("chatbotInput");
+    const message = inputField.value.trim();
+
+    if (!message) return;
+
+    const chatbotBody = document.getElementById("chatbotBody");
+
+    // Show user's message
+    const userMsg = document.createElement("div");
+    userMsg.className = "message user-message";
+    userMsg.textContent = message;
+    chatbotBody.appendChild(userMsg);
+    inputField.value = "";
+    chatbotBody.scrollTop = chatbotBody.scrollHeight;
+
+    // Show loading bot message
+    const botMsg = document.createElement("div");
+    botMsg.className = "message bot-message";
+    botMsg.textContent = "Typing...";
+    chatbotBody.appendChild(botMsg);
+    chatbotBody.scrollTop = chatbotBody.scrollHeight;
+
+    try {
+        const response = await fetch("https://api.together.xyz/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${TOGETHER_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+                messages: [{ role: "user", content: message }]
+            })
+        });
+
+        const data = await response.json();
+        const botReply = data.choices?.[0]?.message?.content || "Sorry, I couldn't get a response.";
+        botMsg.textContent = botReply;
+
+    } catch (error) {
+        botMsg.textContent = "Error connecting to Together API.";
+        console.error(error);
+    }
+
+    chatbotBody.scrollTop = chatbotBody.scrollHeight;
+}
+
+// Enter key sends message
+document.getElementById("chatbotInput").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        sendMessage();
+    }
+});
+
         function toggleProfile() {
             const dropdown = document.getElementById('profileDropdown');
             dropdown.classList.toggle('show');
         }
 
-        function viewProfile() {
-            window.location.href = "{{ url_for('profile') }}";
-        }
+       function viewprofile(){
+        window.location.href ="{{ url_for('profile') }}";
+       }
 
         // Close dropdown when clicking outside
         window.onclick = function(event) {
@@ -74,22 +165,29 @@
                 }
             }
         }
-
+        // function sendMessage() {
+        //     const userMessage = document.getElementById("userInput").value;
+        //     document.getElementById("messages").innerHTML += `<p><b>You:</b> ${userMessage}</p>`;
+        
+        //     fetch("/chatbot", {
+        //         method: "POST",
+        //         headers: { "Content-Type": "application/json" },
+        //         body: JSON.stringify({ message: userMessage })
+        //     })
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         document.getElementById("messages").innerHTML += `<p><b>Bot:</b> ${data.reply}</p>`;
+        //         document.getElementById("userInput").value = "";
+        //     });
+        // }
         // Prevent dropdown from closing when clicking inside it
         document.getElementById('profileDropdown').addEventListener('click', function(event) {
             event.stopPropagation();
         });
 
         // Add click handler for profile link
-        document.addEventListener('DOMContentLoaded', function() {
-            const profileLink = document.querySelector('a[href="{{ url_for("profile") }}"]');
-            if (profileLink) {
-                profileLink.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    viewProfile();
-                });
-            }
-        });
+       
+        
     </script>
 </body>
 </html>

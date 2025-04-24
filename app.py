@@ -8,14 +8,26 @@ from dotenv import load_dotenv
 from decimal import Decimal
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
+from mysql.connector.cursor import MySQLCursorDict
+from decimal import Decimal  # ✅ Import Decimal for proper calculations
+import time
 
+# Then in get_db_connection():
 # Load environment variables
 load_dotenv()
+import secrets
 
+# Generate a 32-byte secret key (hex format)
+secret_key = secrets.token_hex(32)
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", secrets.token_hex(16))
+app.secret_key =  secret_key
 bcrypt = Bcrypt(app)
+
+# Configure session
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['SESSION_COOKIE_SECURE'] = True  # For HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Database configuration
 DB_CONFIG = {
@@ -25,29 +37,40 @@ DB_CONFIG = {
     "database": os.getenv("DB_NAME", "cafe_x"),
     "pool_name": "mypool",
     "pool_size": 5,
-    "autocommit": True
+    "autocommit": True,
+    "use_pure": True,
+    
 }
 
 # Initialize connection pool
 db_pool = mysql.connector.pooling.MySQLConnectionPool(**DB_CONFIG)
 
 def get_db_connection():
-    try:
-        connection = db_pool.get_connection()
-        cursor = connection.cursor(dictionary=True, buffered=True)
-        return connection, cursor
-    except mysql.connector.Error as err:
-        print(f"Error connecting to database: {err}")
-        raise
+    max_retries = 3
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        try:
+            connection = db_pool.get_connection()
+            cursor = connection.cursor(cursor_class=MySQLCursorDict)
+            return connection, cursor
+        except mysql.connector.Error as err:
+            retry_count += 1
+            print(f"Database connection attempt {retry_count} failed: {err}")
+            if retry_count == max_retries:
+                raise
+            time.sleep(1)  # Wait before retrying
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        print(f"Session Data: {session}")
         if "user_id" not in session:
             flash("Please sign in to access this page", "error")
             return redirect(url_for("signin"))
         return f(*args, **kwargs)
     return decorated_function
+
 
 def handle_db_error(f):
     @wraps(f)
@@ -146,7 +169,7 @@ def process_payment():
 
     data = request.json
     amount_inr = float(data["amount_inr"])
-    tokens_to_add = amount_inr / TOKEN_RATE  # Convert INR to Tokens
+    tokens_to_add = amount_inr   # Convert INR to Tokens
 
     connection, cursor = get_db_connection()
     try:
@@ -187,33 +210,44 @@ def deduct_tokens():
     cart_price = float(data.get("cart_price"))
     user_id = session["user_id"]
 
-    cursor.execute("SELECT tokens FROM users WHERE id = %s", (user_id,))
-    current_tokens = cursor.fetchone()[0]
+    connection, cursor = get_db_connection()  # Added connection handling
+    try:
+        cursor.execute("SELECT tokens FROM users WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        if not result:
+            return jsonify({"success": False, "error": "User not found"}), 404
+            
+        current_tokens = float(result["tokens"])  # Using dict access
 
-    if current_tokens < cart_price:
-        return jsonify({"success": False, "error": "Insufficient tokens"}), 400
+        if current_tokens < cart_price:
+            return jsonify({"success": False, "error": "Insufficient tokens"}), 400
 
-    new_balance = current_tokens - cart_price
-    cursor.execute("UPDATE users SET tokens = %s WHERE id = %s", (new_balance, user_id))
-    db.commit()
+        new_balance = current_tokens - cart_price
+        cursor.execute("UPDATE users SET tokens = %s WHERE id = %s", (new_balance, user_id))
+        connection.commit()  # Added commit
 
-    return jsonify({"success": True, "remaining_tokens": new_balance})
-
-from decimal import Decimal  # ✅ Import Decimal for proper calculations
+        return jsonify({"success": True, "remaining_tokens": new_balance})
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route("/get_cart_total", methods=["GET"])
 def get_cart_total():
     if "user_id" not in session:
         return jsonify({"success": False, "error": "User not logged in"}), 401
 
-    user_id = session["user_id"]
-    cursor.execute("SELECT SUM(total_price) FROM cart WHERE user_id = %s", (user_id,))
-    result = cursor.fetchone()
+    connection, cursor = get_db_connection()
+    try:
+        user_id = session["user_id"]
+        cursor.execute("SELECT SUM(total_price) FROM cart WHERE user_id = %s", (user_id,))
+        result = cursor.fetchone()
 
-    total_price = float(result[0]) if result and result[0] is not None else 0
-    return jsonify({"success": True, "total_price": total_price})
+        total_price = float(result[0]) if result and result[0] is not None else 0
+        return jsonify({"success": True, "total_price": total_price})
+    finally:
+        cursor.close()
+        connection.close()
 
-from decimal import Decimal
 @app.route("/pay_with_tokens", methods=["POST"])
 def pay_with_tokens():
     if "user_id" not in session:
@@ -223,32 +257,34 @@ def pay_with_tokens():
     total_price = float(data["total_price"])
     user_id = session["user_id"]
 
-    # Get user's current token balance
-    cursor.execute("SELECT tokens FROM users WHERE id = %s", (user_id,))
-    result = cursor.fetchone()
+    connection, cursor = get_db_connection()
+    try:
+        # Get user's current token balance
+        cursor.execute("SELECT tokens FROM users WHERE id = %s", (user_id,))
+        result = cursor.fetchone()
+        if result is None:
+            return jsonify({"success": False, "error": "User not found"}), 400
 
-    if result is None:
-        return jsonify({"success": False, "error": "User not found"}), 400
+        current_tokens = float(result["tokens"])  # Using dict access
 
-    current_tokens = float(result[0])
+        if current_tokens < total_price:
+            return jsonify({"success": False, "error": "Not enough tokens to complete purchase"}), 400
 
-    if current_tokens < total_price:
-        return jsonify({"success": False, "error": "Not enough tokens to complete purchase"}), 400
+        # Deduct tokens
+        new_balance = current_tokens - total_price
+        cursor.execute("UPDATE users SET tokens = %s WHERE id = %s", (new_balance, user_id))
 
-    # Deduct tokens
-    new_balance = current_tokens - total_price
-    cursor.execute("UPDATE users SET tokens = %s WHERE id = %s", (new_balance, user_id))
-
-    # Save order to `orders` table
-    cursor.execute("INSERT INTO orders (user_id, total_price, purchase_time) VALUES (%s, %s, NOW())",
-                   (user_id, total_price))
-    
-    db.commit()
-
-    return jsonify({
-        "success": True,
-        "remaining_tokens": new_balance
-    })
+        # Save order
+        cursor.execute("""
+            INSERT INTO orders (user_id, total_price, purchase_time) 
+            VALUES (%s, %s, NOW())
+        """, (user_id, total_price))
+        
+        connection.commit()  # Added commit
+        return jsonify({"success": True, "remaining_tokens": new_balance})
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route("/confirm_payment")
 def confirm_payment():
@@ -364,8 +400,6 @@ def logout():
     session.clear()
     return redirect(url_for("home"))
 
-
-
 @app.route("/profile")
 @login_required
 def profile():
@@ -400,7 +434,7 @@ def profile():
                     'id': order['id'],
                     'total_price': float(order['total_price']),
                     'purchase_time': order['purchase_time'].strftime('%Y-%m-%d %H:%M:%S') if order['purchase_time'] else '',
-                    'items': [{
+                    'product': [{
                         'name': order['item_name'],
                         'quantity': order['quantity'],
                         'total_price': float(order['item_total'])
@@ -412,9 +446,6 @@ def profile():
         
         return render_template("profile.html", 
                              user=user,
-                             username=user["name"],
-                             email=user["email"],
-                             tokens=float(user["tokens"]) if user["tokens"] else 0.00,
                              orders=formatted_orders)
                              
     except Exception as e:
@@ -515,7 +546,7 @@ def cart():
         cart_items = cursor.fetchall()
         
         # Calculate total
-        total = sum(item["total_price"] for item in cart_items)
+        total = sum(float(item["total_price"]) for item in cart_items)
         
         return render_template("cart.html", cart_items=cart_items, total=total)
         
@@ -580,6 +611,126 @@ def update_cart_quantity():
         cursor.close()
         connection.close()
 
+@app.route('/chatbot', methods=['POST'])
+def chatbot():
+    data = request.get_json()
+    user_message = data['message'].lower()
+
+    # Simple reply logic
+    if "menu" in user_message:
+        reply = "You can view the menu by clicking on the Menu tab!"
+    elif "token" in user_message:
+        reply = "Your token balance is shown on the Token page."
+    elif "hello" in user_message:
+        reply = "Hi there! How can I help you today?"
+    else:
+        reply = "I'm not sure how to help with that yet."
+
+    return jsonify({"reply": reply})
+
+@app.route("/update_cart/<int:item_id>/<int:change>")
+@login_required
+def update_cart(item_id, change):
+    if "user_id" not in session:
+        return jsonify({
+            "success": False, 
+            "message": "Please sign in to update cart",
+            "status": "unauthorized"
+        }), 401
+    
+    user_id = session["user_id"]
+    connection, cursor = None, None
+    
+    try:
+        connection, cursor = get_db_connection()
+        
+        # 1. Verify item exists and get current data
+        cursor.execute("""
+            SELECT c.quantity, m.price, m.name
+            FROM cart c
+            JOIN menu m ON c.item_id = m.id
+            WHERE c.user_id = %s AND c.item_id = %s
+        """, (user_id, item_id))
+        cart_item = cursor.fetchone()
+        
+        if not cart_item:
+            return jsonify({
+                "success": False,
+                "message": "Item not found in cart",
+                "status": "not_found"
+            }), 404
+        
+        # 2. Calculate new values
+        current_qty = cart_item["quantity"]
+        new_qty = current_qty + change
+        
+        # 3. Handle quantity changes
+        if new_qty <= 0:
+            # Remove item completely
+            cursor.execute("""
+                DELETE FROM cart 
+                WHERE user_id = %s AND item_id = %s
+            """, (user_id, item_id))
+            item_removed = True
+        else:
+            # Update quantity
+            new_total = round(new_qty * float(cart_item["price"]), 2)
+            cursor.execute("""
+                UPDATE cart 
+                SET quantity = %s, 
+                    total_price = %s
+                WHERE user_id = %s AND item_id = %s
+            """, (new_qty, new_total, user_id, item_id))
+            item_removed = False
+        
+        # 4. Get updated cart summary
+        cursor.execute("""
+            SELECT 
+                SUM(quantity) as total_items,
+                SUM(total_price) as grand_total
+            FROM cart 
+            WHERE user_id = %s
+        """, (user_id,))
+        cart_summary = cursor.fetchone()
+        
+        connection.commit()
+        
+        # 5. Prepare response
+        response = {
+            "success": True,
+            "item_id": item_id,
+            "item_removed": item_removed,
+            "cart_total": float(cart_summary["grand_total"] or 0),
+            "total_items": cart_summary["total_items"] or 0
+        }
+        
+        if not item_removed:
+            response.update({
+                "new_quantity": new_qty,
+                "new_total": float(new_total),
+                "item_name": cart_item["name"]
+            })
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"Cart update error: {str(e)}")
+        if connection:
+            connection.rollback()
+        return jsonify({
+            "success": False,
+            "message": "Error updating cart",
+            "error": str(e),
+            "status": "error"
+        }), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+
 @app.route("/get_menu_prices")
 def get_menu_prices():
     connection, cursor = get_db_connection()
@@ -633,9 +784,9 @@ def get_cart_data():
     return jsonify({"success": True, "cart": cart_items, "total_price": total_price})
 
 # ✅ Payment Page Route
-@app.route("/payment")
-def payment():
-    return render_template("payment.html")
+# @app.route("/payment")
+# def payment():
+#     return render_template("payment.html")
 
 # ✅ Process Payment
 
@@ -681,39 +832,48 @@ def checkout():
                 'redirect': url_for('payment')
             })
             
-        # Create order first
-        cursor.execute('''
-            INSERT INTO orders (user_id, total_price, purchase_time)
-            VALUES (%s, %s, NOW())
-        ''', (session['user_id'], cart_total))
-        order_id = cursor.lastrowid
-        
-        # Add order items
-        for item in cart_items:
-            item_total = float(item['quantity'] * item['price'])
+        try:
+            # Create order first
             cursor.execute('''
-                INSERT INTO order_items (order_id, item_id, quantity, price, total_price)
-                VALUES (%s, %s, %s, %s, %s)
-            ''', (order_id, item['item_id'], item['quantity'], item['price'], item_total))
-        
-        # Update user's tokens
-        new_tokens = user_tokens - cart_total
-        cursor.execute('UPDATE users SET tokens = %s WHERE id = %s', (new_tokens, session['user_id']))
-        
-        # Clear cart
-        cursor.execute('DELETE FROM cart WHERE user_id = %s', (session['user_id'],))
-        
-        # Commit the transaction
-        connection.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Order placed successfully! Thank you for your purchase.'
-        })
-        
+                INSERT INTO orders (user_id, total_price, purchase_time)
+                VALUES (%s, %s, NOW())
+            ''', (session['user_id'], cart_total))
+            order_id = cursor.lastrowid
+            
+            # Add order items
+            for item in cart_items:
+                item_total = float(item['quantity'] * item['price'])
+                cursor.execute('''
+                    INSERT INTO order_items (order_id, item_id, quantity, price, total_price)
+                    VALUES (%s, %s, %s, %s, %s)
+                ''', (order_id, item['item_id'], item['quantity'], item['price'], item_total))
+            
+            # Update user's tokens
+            new_tokens = user_tokens - cart_total
+            cursor.execute('UPDATE users SET tokens = %s WHERE id = %s', 
+                         (new_tokens, session['user_id']))
+            
+            # Clear cart
+            cursor.execute('DELETE FROM cart WHERE user_id = %s', (session['user_id'],))
+            
+            # Commit the transaction
+            connection.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Order placed successfully! Thank you for your purchase.'
+            })
+            
+        except Exception as e:
+            print(f"Error in checkout: {str(e)}")
+            connection.rollback()
+            return jsonify({
+                'success': False,
+                'message': 'An error occurred while processing your order.'
+            })
+            
     except Exception as e:
         print(f"Error in checkout: {str(e)}")
-        connection.rollback()
         return jsonify({
             'success': False,
             'message': 'An error occurred while processing your order.'
@@ -750,6 +910,116 @@ def add_tokens():
     finally:
         cursor.close()
         connection.close()
+
+
+
+
+import razorpay
+client = razorpay.Client(auth=("rzp_test_nlqM4lzusperIk", "03U0PAPLKvolfY9FUOEvYWWk"))
+@app.route('/payment')
+@login_required
+def payment():
+    return render_template('form.html')
+
+@app.route('/pay', methods=["GET", "POST"])
+def pay():
+    if request.method == "POST":
+        try:
+            amount = int(request.form.get("amt", 0))
+            if amount <= 0:
+                flash("Please enter a valid amount", "error")
+                return redirect(url_for("payment"))
+                
+            amount_in_paise = amount * 100
+            data = {
+                "amount": amount_in_paise,
+                "currency": "INR",
+                "receipt": f"order_rcptid_{secrets.token_hex(4)}"
+            }
+            payment = client.order.create(data=data)
+            
+            return render_template(
+                "payment.html",
+                pdata=[amount, payment["id"]]
+            )
+        except Exception as e:
+            print(f"Payment creation error: {str(e)}")
+            flash("Error creating payment. Please try again.", "error")
+            return redirect(url_for("payment"))
+            
+    return redirect(url_for("payment"))
+
+@app.route('/success', methods=["POST"])
+def success():
+    try:
+        pid = request.form.get("razorpay_payment_id")
+        ordid = request.form.get("razorpay_order_id")
+        sign = request.form.get("razorpay_signature")
+        
+        params = {
+            'razorpay_order_id': ordid,
+            'razorpay_payment_id': pid,
+            'razorpay_signature': sign
+        }
+        
+        if client.utility.verify_payment_signature(params):
+            # Get payment details to know amount
+            payment = client.payment.fetch(pid)
+            amount_paid = float(payment['amount']) / 100  # Convert from paise to rupees
+            
+            # Calculate tokens to add (1 token = 10 INR)
+            tokens_to_add = amount_paid / TOKEN_RATE
+            
+            # Update user tokens
+            connection, cursor = get_db_connection()
+            try:
+                cursor.execute(
+                    "SELECT tokens FROM users WHERE id = %s",
+                    (session["user_id"],)
+                )
+                current_tokens = float(cursor.fetchone()["tokens"] or 0)
+                new_balance = current_tokens + tokens_to_add
+                
+                cursor.execute(
+                    "UPDATE users SET tokens = %s WHERE id = %s",
+                    (new_balance, session["user_id"])
+                )
+                connection.commit()
+                
+                flash(f"Payment successful! {tokens_to_add} tokens added to your account.", "success")
+                return redirect(url_for("profile"))
+            finally:
+                cursor.close()
+                connection.close()
+        
+        flash("Payment verification failed", "error")
+        return redirect(url_for("payment"))
+        
+    except Exception as e:
+        print(f"Payment processing error: {str(e)}")
+        flash("Error processing payment. Please contact support.", "error")
+        return redirect(url_for("payment"))
+
+# Add a global error handler
+@app.errorhandler(Exception)
+def handle_error(e):
+    print(f"Application error: {str(e)}")
+    return jsonify({
+        "success": False,
+        "error": "An unexpected error occurred",
+        "details": str(e) if app.debug else None
+    }), 500
+
+@app.errorhandler(401)
+def unauthorized(e):
+    flash("Please sign in to access this page", "error")
+    return redirect(url_for('signin'))
+
+@app.errorhandler(404)
+def page_not_found(e):
+    flash("Page not found", "error")
+    return redirect(url_for('home'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
